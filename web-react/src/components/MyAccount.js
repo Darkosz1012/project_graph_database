@@ -19,6 +19,7 @@ const GET_MY_ACCOUNT = gql`
           username
         }
         createdAt
+        public
       }
     }
   }

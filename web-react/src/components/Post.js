@@ -19,7 +19,13 @@ import parseDate from './../utils/parseDateTime'
 
 export default function Post(props) {
   return (
-    <Card sx={{ maxWidth: 500 }}>
+    <Card
+      sx={{
+        maxWidth: 500,
+        width: '100%',
+        border: props?.data?.public == false ? '1px solid green' : 'none',
+      }}
+    >
       <CardHeader
         avatar={
           <Avatar username={props.username ?? props.data.createdBy.username} />

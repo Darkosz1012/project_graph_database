@@ -13,7 +13,7 @@ const SIGN_IN_MUTATION = gql`
 
 export default function refreshApi(client) {
   const refreshApi = createRefresh({
-    interval: 1,
+    interval: 5,
     refreshApiCallback: ({ refreshToken }) => {
       client
         .mutate({

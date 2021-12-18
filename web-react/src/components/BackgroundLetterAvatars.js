@@ -34,7 +34,6 @@ function stringAvatar(name) {
 }
 
 export default function BackgroundLetterAvatars(props) {
-  console.log(props, props.username)
   if (props.username) {
     return (
       <Avatar
