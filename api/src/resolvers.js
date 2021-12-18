@@ -1,4 +1,4 @@
-import { hash, verify } from './auth.js'
+import { hash, verify, authenticateToken } from './auth.js'
 import jwt from 'jsonwebtoken'
 
 export default function (ogm, driver) {
@@ -14,7 +14,7 @@ export default function (ogm, driver) {
                       RETURN u`,
             { username, email }
           )
-          var data = result.records[0]._fields[0].properties
+
           if (result.records.length == 0) {
             const user = await User.create({
               input: [
@@ -27,6 +27,7 @@ export default function (ogm, driver) {
             })
             return createUserToken(user)
           } else {
+            var data = result.records[0]._fields[0].properties
             if (data.username == username)
               throw new Error(`User with username ${username} already exists!`)
             else throw new Error(`User with email ${email} already exists!`)
@@ -61,13 +62,26 @@ export default function (ogm, driver) {
           await session.close()
         }
       },
+      refreshToken: async (_source, { refreshToken }) => {
+        authenticateToken(refreshToken)
+        var data = jwt.decode(refreshToken)
+        return createUserTokenWithoutRefresh(data, refreshToken)
+      },
     },
   }
 }
 
 function createUserToken(user) {
   return {
-    accessToken: createJWT(user, '1h'),
+    accessToken: createJWT(user, '10m'),
+    refreshToken: createJWT(user, '1h'),
+    username: user.username,
+  }
+}
+function createUserTokenWithoutRefresh(user, refreshToken) {
+  return {
+    accessToken: createJWT(user, '10m'),
+    refreshToken: refreshToken,
     username: user.username,
   }
 }
@@ -76,7 +90,8 @@ function createJWT(user, time) {
   return jwt.sign(
     {
       username: user.username,
-      id: user._id,
+      sub: user._id,
+      email: user.email,
     },
     process.env.GRAPHQL_SERVER_SECRET,
     { expiresIn: time }

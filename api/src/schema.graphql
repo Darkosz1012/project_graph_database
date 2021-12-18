@@ -7,49 +7,71 @@
 # scalar DateTime
 # scalar PointInput
 
-interface ITime @relationshipProperties{
+interface ITime @relationshipProperties {
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
 }
 
-type User{
+type User {
   userId: ID! @id(autogenerate: true, unique: true)
-  username: String! 
-  email: String! 
+  username: String!
+  email: String!
+    @auth(rules: [{ operations: [READ], allow: { id: "$jwt.sub" } }])
   password: String! @private
-  avatarImg: String
-  likedPosts: [Post!]! @relationship(type: "LIKED", properties: "ITime", direction: OUT)
-  createdPosts: [Post!]! @relationship(type: "CREATED", properties: "ITime", direction: OUT)
-  invitationToFriends: [User!]! @relationship(type: "INVITED", properties: "ITime", direction: OUT)
-  friends: [User!]! @relationship(type: "FRIEND", properties: "ITime", direction: OUT)
+  likedPosts: [Post!]!
+    @relationship(type: "LIKED", properties: "ITime", direction: OUT)
+  createdPosts: [Post!]!
+    @relationship(type: "CREATED", properties: "ITime", direction: OUT)
+  invitationToFriends: [User!]!
+    @relationship(type: "INVITED", properties: "ITime", direction: OUT)
+  friends: [User!]!
+    @relationship(type: "FRIEND", properties: "ITime", direction: OUT)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
 }
 
-type Post{
+type Post
+  @auth(
+    rules: [
+      {
+        operations: [READ]
+        where: {
+          OR: [
+            { createdBy: { friends: { userId: "$jwt.sub" } } }
+            { public: true }
+          ]
+        }
+        allowUnauthenticated: true
+      }
+    ]
+  ) {
   postId: ID! @id(autogenerate: true, unique: true)
   content: String
   public: Boolean
-  likedBy: [User!]! @relationship(type: "LIKED", properties: "ITime", direction: IN)
-  createdBy: [User!]! @relationship(type: "CREATED", properties: "ITime", direction: IN)
+  likedBy: [User!]!
+    @relationship(type: "LIKED", properties: "ITime", direction: IN)
+  createdBy: [User!]!
+    @relationship(type: "CREATED", properties: "ITime", direction: IN)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
 }
 
 type Token {
-    accessToken: String!
-    userId: String!
+  accessToken: String!
+  refreshToken: String
+  username: String
 }
 
-
 type Mutation {
-    signIn(usernameOrEmail: String!, password: String!): Token!
-    signUp(
-        username: String!
-        email: String!
-        password: String!
-    ): Token!
-    refresh(refreshToken: String!): Token!
+  signIn(usernameOrEmail: String!, password: String!): Token!
+  signUp(username: String!, email: String!, password: String!): Token!
+  refreshToken(refreshToken: String!): Token!
+}
+
+type Query {
+  myaccount: User
+    @cypher(statement: "MATCH (u:User { userId: $auth.jwt.sub }) RETURN u")
+    @auth(rules: [{ isAuthenticated: true }])
 }
 
 # type User {
