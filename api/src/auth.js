@@ -36,7 +36,7 @@ export function verifyRequest(req) {
 
 export function authenticateToken(token) {
   try {
-    return jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    return jwt.verify(token, process.env.GRAPHQL_SERVER_SECRET)
   } catch (err) {
     throw {
       message: 'Authentication failed.',

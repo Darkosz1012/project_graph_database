@@ -38,6 +38,7 @@ type Post
         where: {
           OR: [
             { createdBy: { friends: { userId: "$jwt.sub" } } }
+            { createdBy: { userId: "$jwt.sub" } }
             { public: true }
           ]
         }
@@ -50,7 +51,7 @@ type Post
   public: Boolean
   likedBy: [User!]!
     @relationship(type: "LIKED", properties: "ITime", direction: IN)
-  createdBy: [User!]!
+  createdBy: User!
     @relationship(type: "CREATED", properties: "ITime", direction: IN)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
@@ -70,7 +71,9 @@ type Mutation {
 
 type Query {
   myaccount: User
-    @cypher(statement: "MATCH (u:User { userId: $auth.jwt.sub }) RETURN u")
+    @cypher(
+      statement: "MATCH (u:User { userId: $auth.jwt.sub }) RETURN u, $auth"
+    )
     @auth(rules: [{ isAuthenticated: true }])
 }
 

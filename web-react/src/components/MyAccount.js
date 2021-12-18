@@ -1,6 +1,10 @@
 import React from 'react'
-import { Grid, Paper, CircularProgress } from '@mui/material'
+import { Grid, Paper, Stack, CircularProgress, Typography } from '@mui/material'
 import { useQuery, gql } from '@apollo/client'
+import Avatar from './BackgroundLetterAvatars'
+import Post from './Post'
+
+import parseDate from './../utils/parseDateTime'
 
 const GET_MY_ACCOUNT = gql`
   query getMyAccount {
@@ -9,13 +13,27 @@ const GET_MY_ACCOUNT = gql`
       username
       email
       createdAt
+      createdPosts(options: { sort: [{ createdAt: DESC }], limit: 10 }) {
+        content
+        likedBy {
+          username
+        }
+        createdAt
+      }
     }
   }
 `
 
 export default function MainPage() {
-  const { loading } = useQuery(GET_MY_ACCOUNT)
-
+  const { loading, data, error, refetch } = useQuery(GET_MY_ACCOUNT, {
+    onCompleted: (data) => {
+      console.log(data)
+    },
+  })
+  let userdata = data?.myaccount ?? {}
+  if (error) {
+    console.error(error)
+  }
   if (loading)
     return (
       <Grid container spacing={4}>
@@ -30,8 +48,40 @@ export default function MainPage() {
   return (
     <Grid container spacing={4}>
       {/* Ratings Chart */}
-      <Grid item xs={12}>
-        <Paper>my account</Paper>
+      <Grid item xs={5}>
+        <Paper
+          variant="outlined"
+          sx={{
+            p: 5,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}
+        >
+          <Avatar username={userdata.username} />
+          <Typography variant="h3">{userdata.username}</Typography>
+          <Typography variant="h4">{userdata.email}</Typography>
+          <Typography variant="h5">{parseDate(userdata.createdAt)}</Typography>
+        </Paper>
+        {/* <button onClick={() => refetch()}>Refetch!</button> */}
+      </Grid>
+      <Grid
+        item
+        xs={7}
+        sx={{
+          p: 5,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Stack spacing={2}>
+          {userdata.createdPosts.map((data, index) => {
+            return <Post key={index} data={data} username={userdata.username} />
+          })}
+        </Stack>
       </Grid>
     </Grid>
   )

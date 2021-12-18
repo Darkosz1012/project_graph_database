@@ -53,7 +53,7 @@ export default function (ogm, driver) {
           }
 
           var data = result.records[0]._fields[0].properties
-
+          console.log(data)
           if (!verify(password, data.password)) {
             throw new Error(`Incorrect password for user  ${usernameOrEmail}!`)
           }
@@ -90,7 +90,7 @@ function createJWT(user, time) {
   return jwt.sign(
     {
       username: user.username,
-      sub: user._id,
+      sub: user.userId,
       email: user.email,
     },
     process.env.GRAPHQL_SERVER_SECRET,
