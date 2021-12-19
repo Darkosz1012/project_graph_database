@@ -43,6 +43,9 @@ import createResolvers from './resolvers'
       jwt: {
         secret: process.env.GRAPHQL_SERVER_SECRET || '123456',
       },
+      auth: {
+        isAuthenticated: true,
+      },
     },
   })
   // await neoSchema.assertIndexesAndConstraints({ options: { create: true }});

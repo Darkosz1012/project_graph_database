@@ -69,7 +69,6 @@ export default function (ogm, driver) {
         return createUserTokenWithoutRefresh(data, refreshToken)
       },
       createPost: async (_source, { content, onlyFriends }, context) => {
-        console.log(_source, context.jwt)
         const post = await Post.create({
           input: {
             content,
@@ -81,13 +80,59 @@ export default function (ogm, driver) {
         })
         return post
       },
+      createInvitationToFriends: async (_source, { userId }, context) => {
+        const user = await User.update({
+          where: { userId: userId },
+          connect: {
+            invitationToFriends: {
+              where: { node: { userId: context.jwt.sub } },
+            },
+          },
+        })
+        return true
+      },
+      declineFriendInvitation: async (_source, { userId }, context) => {
+        const user = await User.update({
+          where: { userId: context.jwt.sub },
+          disconnect: {
+            invitationToFriends: {
+              where: { node: { userId: userId } },
+            },
+          },
+        })
+        return true
+      },
+      acceptFriendInvitation: async (_source, { userId }, context) => {
+        await User.update({
+          where: { userId: context.jwt.sub },
+          disconnect: {
+            invitationToFriends: {
+              where: { node: { userId: userId } },
+            },
+          },
+          connect: {
+            friends: {
+              where: { node: { userId: userId } },
+            },
+          },
+        })
+        await User.update({
+          where: { userId: userId },
+          connect: {
+            friends: {
+              where: { node: { userId: context.jwt.sub } },
+            },
+          },
+        })
+        return true
+      },
     },
   }
 }
 
 function createUserToken(user) {
   return {
-    accessToken: createJWT(user, '10m'),
+    accessToken: createJWT(user, '60m'),
     refreshToken: createJWT(user, '1h'),
     username: user.username,
   }

@@ -24,11 +24,29 @@ type User {
   createdPosts: [Post!]!
     @relationship(type: "CREATED", properties: "ITime", direction: OUT)
   invitationToFriends: [User!]!
-    @relationship(type: "INVITED", properties: "ITime", direction: OUT)
+    @relationship(type: "INVITED", properties: "ITime", direction: IN)
   friends: [User!]!
     @relationship(type: "FRIEND", properties: "ITime", direction: OUT)
   createdAt: DateTime! @timestamp(operations: [CREATE])
   updatedAt: DateTime! @timestamp(operations: [CREATE, UPDATE])
+  mutualFriends: [User!]!
+    @cypher(
+      statement: """
+      MATCH (this)-[:FRIEND]-(f:User)-[:FRIEND]-(u:User {userId: $auth.jwt.sub})
+      WHERE u.userId <> this.userId
+      RETURN distinct f
+      """
+    )
+    @auth(rules: [{ isAuthenticated: true }])
+  mutualFriendsCount: Int!
+    @cypher(
+      statement: """
+      MATCH (this)-[:FRIEND]-(f:User)-[:FRIEND]-(u:User {userId: $auth.jwt.sub})
+      WHERE u.userId <> this.userId
+      RETURN count(distinct f)
+      """
+    )
+    @auth(rules: [{ isAuthenticated: true }])
 }
 
 type Post
@@ -71,6 +89,11 @@ type Mutation {
   refreshToken(refreshToken: String!): Token!
 
   createPost(content: String!, onlyFriends: Boolean!): Post!
+
+  createInvitationToFriends(userId: ID!): Boolean!
+
+  declineFriendInvitation(userId: ID!): Boolean!
+  acceptFriendInvitation(userId: ID!): Boolean!
 }
 
 type Query {
