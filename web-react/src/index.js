@@ -40,7 +40,7 @@ const Main = () => (
     <AuthProvider
       authName={'_auth'}
       authType={'localstorage'}
-      refresh={refreshApi(client)}
+      // refresh={refreshApi(client)}
     >
       <App />
     </AuthProvider>

@@ -25,7 +25,7 @@ const GET_MY_ACCOUNT = gql`
   }
 `
 
-export default function MainPage() {
+export default function MyAccount() {
   const { loading, data, error, refetch } = useQuery(GET_MY_ACCOUNT, {
     onCompleted: (data) => {
       console.log(data)
@@ -79,7 +79,7 @@ export default function MainPage() {
         }}
       >
         <Stack spacing={2}>
-          {userdata.createdPosts.map((data, index) => {
+          {userdata?.createdPosts?.map((data, index) => {
             return <Post key={index} data={data} username={userdata.username} />
           })}
         </Stack>

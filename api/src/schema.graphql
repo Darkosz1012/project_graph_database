@@ -57,11 +57,12 @@ type Post
         operations: [READ]
         where: {
           OR: [
-            { createdBy: { friends: { userId: "$jwt.sub" } } }
             { createdBy: { userId: "$jwt.sub" } }
+            { createdBy: { friends: { userId: "$jwt.sub" } } }
             { onlyFriends: false }
           ]
         }
+        # where: { onlyFriends: false }
         allowUnauthenticated: true
       }
     ]
@@ -98,8 +99,20 @@ type Mutation {
 
 type Query {
   myaccount: User
+    @cypher(statement: "MATCH (u:User { userId: $auth.jwt.sub }) RETURN u")
+    @auth(rules: [{ isAuthenticated: true }])
+  friendsProposition(limit: Int = 30): [User!]!
     @cypher(
-      statement: "MATCH (u:User { userId: $auth.jwt.sub }) RETURN u, $auth"
+      statement: """
+      MATCH (u:User), (m:User{userId:$auth.jwt.sub})
+         WHERE NOT (u)-[:FRIEND]-(m) AND NOT (u)-[:INVITED]-(m) AND u<>m
+         CALL {
+        WITH u, m
+        OPTIONAL MATCH (u)-[:FRIEND]-(f:User)-[:FRIEND]-(m)
+        WHERE u.userId <> m.userId
+        RETURN f
+      } RETURN u,count(distinct f)  ORDER BY count(distinct f) DESC  LIMIT toInteger($limit)
+      """
     )
     @auth(rules: [{ isAuthenticated: true }])
 }

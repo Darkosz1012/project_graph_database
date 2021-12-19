@@ -37,10 +37,10 @@ export default function SignIn() {
       if (
         signIn({
           token: data.accessToken,
-          expiresIn: 10,
+          expiresIn: 60,
           tokenType: 'Bearer',
-          refreshToken: data.refreshToken, // Only if you are using refreshToken feature
-          refreshTokenExpireIn: 60,
+          // refreshToken: data.refreshToken, // Only if you are using refreshToken feature
+          // refreshTokenExpireIn: 60,
         })
       ) {
         setRedirect(true)

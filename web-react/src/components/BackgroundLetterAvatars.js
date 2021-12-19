@@ -8,7 +8,7 @@ function stringToColor(string) {
 
   /* eslint-disable no-bitwise */
   for (i = 0; i < string.length; i += 1) {
-    hash = string.charCodeAt(i) + ((hash << 5) - hash)
+    hash = ((string.charCodeAt(i) * 67) % 255) + ((hash << 5) - hash)
   }
 
   let color = '#'
@@ -35,15 +35,10 @@ function stringAvatar(name) {
 
 export default function BackgroundLetterAvatars(props) {
   if (props.username) {
-    return (
-      <Avatar
-        sx={{ width: 150, height: 150 }}
-        {...stringAvatar(props.username)}
-      />
-    )
+    return <Avatar {...stringAvatar(props.username)} />
   } else {
     return (
-      <Avatar sx={{ width: 150, height: 150 }}>
+      <Avatar>
         <FolderIcon />
       </Avatar>
     )

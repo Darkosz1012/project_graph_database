@@ -32,6 +32,7 @@ import {
 } from '@mui/icons-material'
 import MainPage from './components/MainPage'
 import MyAccount from './components/MyAccount'
+import Friends from './components/Friends'
 import Copyright from './components/Copyright'
 import SignIn from './components/SignIn'
 import SignUp from './components/SignUp'
@@ -224,6 +225,12 @@ export default function App() {
                 <PrivateRoute
                   component={MyAccount}
                   path={'/myaccount'}
+                  loginPath={'/signin'}
+                  exact
+                />
+                <PrivateRoute
+                  component={Friends}
+                  path={'/friends'}
                   loginPath={'/signin'}
                   exact
                 />
