@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { styled } from '@mui/material/styles'
-import { useQuery, gql } from '@apollo/client'
+import { useQuery, useMutation, gql } from '@apollo/client'
 import {
   Card,
   CardHeader,
@@ -33,12 +33,40 @@ const GET_MY_ACCOUNT = gql`
   }
 `
 
+const CREATE_POST = gql`
+  mutation createPost($content: String!, $onlyFriends: Boolean!) {
+    createPost(content: $content, onlyFriends: $onlyFriends) {
+      content
+    }
+  }
+`
+
 export default function PostForm(props) {
   const { loading, data, error, refetch } = useQuery(GET_MY_ACCOUNT, {
     onCompleted: (data) => {
       console.log(data)
     },
   })
+  const [mutateFunction] = useMutation(CREATE_POST, {
+    onCompleted: (data) => {
+      console.log(data) // the response
+    },
+    onError: (error) => {
+      console.error(error) // the error if that is the case
+    },
+  })
+
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    const data = new FormData(event.currentTarget)
+    mutateFunction({
+      variables: {
+        content: data.get('content'),
+        onlyFriends: data.get('onlyFriends') ? true : false,
+      },
+    })
+  }
+
   let userdata = data?.myaccount ?? {}
   if (error) {
     console.error(error)
@@ -48,6 +76,7 @@ export default function PostForm(props) {
       component="form"
       autoComplete="off"
       sx={{ maxWidth: 500, width: '100%', p: 3 }}
+      onSubmit={handleSubmit}
     >
       <Stack direction="row" spacing={2} sx={{ mb: 2, alignItems: 'center' }}>
         <Avatar username={userdata.username} />
@@ -59,6 +88,7 @@ export default function PostForm(props) {
         multiline
         rows={6}
         sx={{ width: '100%' }}
+        name="content"
       />
       <Stack
         direction="row"
@@ -66,10 +96,12 @@ export default function PostForm(props) {
         sx={{ mt: 2, alignItems: 'center', justifyContent: 'space-between' }}
       >
         <FormControlLabel
-          control={<Checkbox />}
+          control={<Checkbox name="onlyFriends" />}
           label="Only visible to friends"
         />
-        <Button variant="contained">Send</Button>
+        <Button variant="contained" type="submit">
+          Send
+        </Button>
       </Stack>
     </Paper>
   )

@@ -9,7 +9,7 @@ const GET_POSTS = gql`
   query posts {
     posts(options: { sort: [{ createdAt: DESC }], limit: 10 }) {
       content
-      public
+      onlyFriends
       likedBy {
         username
       }
@@ -52,6 +52,7 @@ export default function MainPage() {
       </Stack>
     )
   console.log(isAuthenticated())
+  console.log(data)
   return (
     <Stack
       spacing={2}
@@ -64,7 +65,7 @@ export default function MainPage() {
       }}
     >
       {isAuthenticated() ? <PostForm /> : ''}
-      {data.posts.map((data, index) => {
+      {data?.posts?.map((data, index) => {
         return <Post key={index} data={data} />
       })}
     </Stack>

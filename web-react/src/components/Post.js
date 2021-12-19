@@ -23,7 +23,7 @@ export default function Post(props) {
       sx={{
         maxWidth: 500,
         width: '100%',
-        border: props?.data?.public == false ? '1px solid green' : 'none',
+        border: props?.data?.onlyFriends ? '1px solid green' : 'none',
       }}
     >
       <CardHeader

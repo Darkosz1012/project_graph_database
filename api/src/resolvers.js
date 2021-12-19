@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 
 export default function (ogm, driver) {
   const User = ogm.model('User')
+  const Post = ogm.model('Post')
   return {
     Mutation: {
       signUp: async (_source, { email, username, password }) => {
@@ -66,6 +67,19 @@ export default function (ogm, driver) {
         authenticateToken(refreshToken)
         var data = jwt.decode(refreshToken)
         return createUserTokenWithoutRefresh(data, refreshToken)
+      },
+      createPost: async (_source, { content, onlyFriends }, context) => {
+        console.log(_source, context.jwt)
+        const post = await Post.create({
+          input: {
+            content,
+            onlyFriends,
+            createdBy: {
+              connect: { where: { node: { userId: context.jwt.sub } } },
+            },
+          },
+        })
+        return post
       },
     },
   }

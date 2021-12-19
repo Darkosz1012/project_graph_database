@@ -13,6 +13,7 @@ interface ITime @relationshipProperties {
 }
 
 type User {
+  # @exclude(operations: [CREATE, DELETE, UPDATE])
   userId: ID! @id(autogenerate: true, unique: true)
   username: String!
   email: String!
@@ -31,6 +32,7 @@ type User {
 }
 
 type Post
+  # @exclude(operations: [CREATE, DELETE, UPDATE])
   @auth(
     rules: [
       {
@@ -39,7 +41,7 @@ type Post
           OR: [
             { createdBy: { friends: { userId: "$jwt.sub" } } }
             { createdBy: { userId: "$jwt.sub" } }
-            { public: true }
+            { onlyFriends: false }
           ]
         }
         allowUnauthenticated: true
@@ -48,7 +50,7 @@ type Post
   ) {
   postId: ID! @id(autogenerate: true, unique: true)
   content: String
-  public: Boolean
+  onlyFriends: Boolean
   likedBy: [User!]!
     @relationship(type: "LIKED", properties: "ITime", direction: IN)
   createdBy: User!
@@ -67,6 +69,8 @@ type Mutation {
   signIn(usernameOrEmail: String!, password: String!): Token!
   signUp(username: String!, email: String!, password: String!): Token!
   refreshToken(refreshToken: String!): Token!
+
+  createPost(content: String!, onlyFriends: Boolean!): Post!
 }
 
 type Query {
